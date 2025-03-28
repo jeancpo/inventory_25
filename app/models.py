@@ -12,5 +12,6 @@ class Movimiento(db.Model):
     tipo = db.Column(db.String(10), nullable=False)  # 'entrada' o 'salida'
     cantidad = db.Column(db.Integer, nullable=False)
     fecha = db.Column(db.DateTime, default=datetime.utcnow)
+    location = db.Column(db.String(100), nullable=True)  # New location field
 
     producto = db.relationship('Producto', backref=db.backref('movimientos', lazy=True))
