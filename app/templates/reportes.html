@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="text-2xl font-bold">Reportes</h1>
+<form method="GET" class="mt-4">
+    <select name="filtro" class="p-2 border">
+        <option value="dia">Hoy</option>
+        <option value="mes">Este mes</option>
+    </select>
+    <button type="submit" class="bg-blue-500 text-white p-2">Generar reporte</button>
+</form>
+<table class="table-auto w-full mt-4">
+    <thead>
+        <tr>
+            <th>Producto</th>
+            <th>Tipo</th>
+            <th>Cantidad</th>
+            <th>Fecha</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for movimiento in movimientos %}
+        <tr>
+            <td>{{ movimiento.producto.nombre }}</td>
+            <td>{{ movimiento.tipo }}</td>
+            <td>{{ movimiento.cantidad }}</td>
+            <td>{{ movimiento.fecha }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
