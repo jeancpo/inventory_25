@@ -27,6 +27,7 @@ def register_routes(app):
             tipo = request.form['tipo']
             producto_id = request.form['producto_id']
             cantidad = int(request.form['cantidad'])
+            location = request.form.get('location', '')  # Get location from the form
             producto = Producto.query.get(producto_id)
 
             if tipo == 'entrada':
@@ -36,10 +37,13 @@ def register_routes(app):
             else:
                 return "Error: cantidad insuficiente", 400
 
-            movimiento = Movimiento(producto_id=producto_id, tipo=tipo, cantidad=cantidad)
+            movimiento = Movimiento(
+                producto_id=producto_id, tipo=tipo, cantidad=cantidad, location=location
+            )
             db.session.add(movimiento)
             db.session.commit()
             return redirect(url_for('movimientos'))
+
         productos = Producto.query.all()
         movimientos = Movimiento.query.all()
         return render_template('movimientos.html', productos=productos, movimientos=movimientos)
@@ -49,7 +53,28 @@ def register_routes(app):
         filtro = request.args.get('filtro', 'dia')
         today = datetime.utcnow()
 
-        if filtro == 'dia':
+        if filtro == 'rango':
+            fecha_inicio = request.args.get('fecha_inicio')
+            fecha_fin = request.args.get('fecha_fin')
+            
+            if not fecha_inicio or not fecha_fin:
+                return "Error: Se requieren ambas fechas para el rango", 400
+                
+            try:
+                fecha_inicio = datetime.strptime(fecha_inicio, '%Y-%m-%d')
+                fecha_fin = datetime.strptime(fecha_fin, '%Y-%m-%d')
+                
+                if fecha_inicio > fecha_fin:
+                    return "Error: La fecha inicial no puede ser mayor que la fecha final", 400
+                    
+                movimientos = Movimiento.query.filter(
+                    db.func.date(Movimiento.fecha) >= fecha_inicio.date(),
+                    db.func.date(Movimiento.fecha) <= fecha_fin.date()
+                ).all()
+            except ValueError:
+                return "Error: Formato de fecha inválido", 400
+                
+        elif filtro == 'dia':
             movimientos = Movimiento.query.filter(
                 db.func.date(Movimiento.fecha) == today.date()
             ).all()
@@ -59,5 +84,5 @@ def register_routes(app):
             ).all()
         else:
             movimientos = Movimiento.query.all()
-
+        
         return render_template('reportes.html', movimientos=movimientos)

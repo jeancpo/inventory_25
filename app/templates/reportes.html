@@ -1,31 +1,91 @@
 {% extends "base.html" %}
 {% block content %}
-<h1 class="text-2xl font-bold">Reportes</h1>
-<form method="GET" class="mt-4">
-    <select name="filtro" class="p-2 border">
-        <option value="dia">Hoy</option>
-        <option value="mes">Este mes</option>
-    </select>
-    <button type="submit" class="bg-blue-500 text-white p-2">Generar reporte</button>
-</form>
-<table class="table-auto w-full mt-4">
-    <thead>
-        <tr>
-            <th>Producto</th>
-            <th>Tipo</th>
-            <th>Cantidad</th>
-            <th>Fecha</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for movimiento in movimientos %}
-        <tr>
-            <td>{{ movimiento.producto.nombre }}</td>
-            <td>{{ movimiento.tipo }}</td>
-            <td>{{ movimiento.cantidad }}</td>
-            <td>{{ movimiento.fecha }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="bg-white p-6 rounded-lg shadow-md">
+    <h1 class="text-2xl font-bold mb-4">Reportes</h1>
+    
+    <form method="GET" class="mb-6 bg-gray-50 p-4 rounded-lg" id="reportForm">
+        <div class="flex flex-col md:flex-row gap-4">
+            <select name="filtro" id="filtro" 
+                    class="p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                    onchange="toggleDateInputs()">
+                <option value="dia">Hoy</option>
+                <option value="mes">Este mes</option>
+                <option value="rango">Rango de fechas</option>
+            </select>
+            
+            <div id="dateInputs" class="flex items-center gap-4" style="display: none;">
+                <div class="flex items-center gap-2">
+                    <label for="fecha_inicio" class="text-gray-700">Desde:</label>
+                    <input type="date" id="fecha_inicio" name="fecha_inicio" 
+                           class="p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <label for="fecha_fin" class="text-gray-700">Hasta:</label>
+                    <input type="date" id="fecha_fin" name="fecha_fin" 
+                           class="p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+            </div>
+            
+            <button type="submit" class="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 transition-colors">
+                Generar reporte
+            </button>
+        </div>
+    </form>
+
+    <div class="overflow-x-auto">
+        <table class="min-w-full table-auto">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidad</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for movimiento in movimientos %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">{{ movimiento.producto.nombre }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ movimiento.tipo }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ movimiento.cantidad }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ movimiento.fecha }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function toggleDateInputs() {
+    const filtro = document.getElementById('filtro').value;
+    const dateInputs = document.getElementById('dateInputs');
+    dateInputs.style.display = filtro === 'rango' ? 'flex' : 'none';
+}
+
+document.getElementById('reportForm').onsubmit = function(e) {
+    const filtro = document.getElementById('filtro').value;
+    if (filtro === 'rango') {
+        const fechaInicio = document.getElementById('fecha_inicio').value;
+        const fechaFin = document.getElementById('fecha_fin').value;
+        
+        if (!fechaInicio || !fechaFin) {
+            alert('Por favor seleccione ambas fechas');
+            e.preventDefault();
+            return false;
+        }
+        
+        if (fechaInicio > fechaFin) {
+            alert('La fecha inicial no puede ser mayor que la fecha final');
+            e.preventDefault();
+            return false;
+        }
+    }
+    return true;
+}
+
+// Run on page load to set initial state
+toggleDateInputs();
+</script>
 {% endblock %}

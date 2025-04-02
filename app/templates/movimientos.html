@@ -1,40 +1,56 @@
 {% extends "base.html" %}
 {% block content %}
-<h1 class="text-2xl font-bold">Movimientos</h1>
-<form method="POST" class="mt-4">
-    <select name="producto_id" class="p-2 border">
-        {% for producto in productos %}
-        <option value="{{ producto.id }}">{{ producto.nombre }}</option>
-        {% endfor %}
-    </select>
-    <select name="tipo" class="p-2 border">
-        <option value="entrada">Entrada</option>
-        <option value="salida">Salida</option>
-    </select>
-    <input type="number" name="cantidad" placeholder="Cantidad" class="p-2 border" required>
-    <input type="text" name="location" id="location" placeholder="Ubicación" class="p-2 border">
-    <button type="submit" class="bg-blue-500 text-white p-2">Registrar movimiento</button>
-</form>
-<table class="table-auto w-full mt-4">
-    <thead>
-        <tr>
-            <th>Producto</th>
-            <th>Tipo</th>
-            <th>Cantidad</th>
-            <th>Fecha</th>
-            <th>Ubicación</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for movimiento in movimientos %}
-        <tr>
-            <td>{{ movimiento.producto.nombre }}</td>
-            <td>{{ movimiento.tipo }}</td>
-            <td>{{ movimiento.cantidad }}</td>
-            <td>{{ movimiento.fecha }}</td>
-            <td>{{ movimiento.location }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="bg-white p-6 rounded-lg shadow-md">
+    <h1 class="text-2xl font-bold mb-4">Movimientos</h1>
+    
+    <form method="POST" class="mb-6 bg-gray-50 p-4 rounded-lg">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <select name="producto_id" class="p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                {% for producto in productos %}
+                <option value="{{ producto.id }}">{{ producto.nombre }}</option>
+                {% endfor %}
+            </select>
+            
+            <select name="tipo" class="p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <option value="entrada">Entrada</option>
+                <option value="salida">Salida</option>
+            </select>
+            
+            <input type="number" name="cantidad" placeholder="Cantidad" 
+                   class="p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+            
+            <input type="text" name="location" id="location" placeholder="Ubicación" 
+                   class="p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            
+            <button type="submit" class="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 transition-colors">
+                Registrar movimiento
+            </button>
+        </div>
+    </form>
+
+    <div class="overflow-x-auto">
+        <table class="min-w-full table-auto">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidad</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ubicación</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for movimiento in movimientos %}
+                <tr class="hover:bg-gray-50">
+                    <td class="px-6 py-4 whitespace-nowrap">{{ movimiento.producto.nombre }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ movimiento.tipo }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ movimiento.cantidad }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ movimiento.fecha }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">{{ movimiento.location }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% endblock %}

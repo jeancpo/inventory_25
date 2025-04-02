@@ -1,5 +1,24 @@
 {% extends "base.html" %}
 {% block content %}
-<h1 class="text-2xl font-bold">Bienvenido al Sistema de Inventario</h1>
-<p>Aquí puedes gestionar tus productos y movimientos.</p>
+<div class="bg-white p-6 rounded-lg shadow-md">
+    <h1 class="text-2xl font-bold mb-4">Bienvenido al Sistema de Inventario</h1>
+    <p class="text-gray-600 mb-4">Aquí puedes gestionar tus productos y movimientos.</p>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <a href="/productos" class="bg-blue-100 p-4 rounded-lg hover:bg-blue-200 transition-colors">
+            <h2 class="text-lg font-semibold mb-2">Productos</h2>
+            <p class="text-gray-600">Gestiona tu inventario de productos</p>
+        </a>
+        
+        <a href="/movimientos" class="bg-green-100 p-4 rounded-lg hover:bg-green-200 transition-colors">
+            <h2 class="text-lg font-semibold mb-2">Movimientos</h2>
+            <p class="text-gray-600">Registra entradas y salidas</p>
+        </a>
+        
+        <a href="/reportes" class="bg-purple-100 p-4 rounded-lg hover:bg-purple-200 transition-colors">
+            <h2 class="text-lg font-semibold mb-2">Reportes</h2>
+            <p class="text-gray-600">Visualiza estadísticas y reportes</p>
+        </a>
+    </div>
+</div>
 {% endblock %}
