@@ -24,9 +24,9 @@
         <div class="bg-red-100 p-4 rounded shadow flex flex-col items-center">
             <div class="text-lg font-semibold mb-2">Stock crítico</div>
             <div class="text-3xl font-bold text-red-700">
-                {{ stock_critico|length }}
+                {{ productos_alerta|length }}
             </div>
-            <div class="text-gray-500">Productos con cantidad &lt; 5</div>
+            <div class="text-gray-500">Productos con alerta activa y cantidad &lt; umbral</div>
         </div>
     </div>
 
@@ -62,7 +62,7 @@
     </div>
 
     <!-- Tabla: Productos con stock crítico -->
-    {% if stock_critico %}
+    {% if productos_alerta %}
     <div class="mb-8">
         <h2 class="text-xl font-semibold mb-2">Productos con stock crítico</h2>
         <div class="overflow-x-auto">
@@ -71,13 +71,23 @@
                     <tr>
                         <th class="px-4 py-2 text-left">Nombre</th>
                         <th class="px-4 py-2 text-right">Cantidad</th>
+                        <th class="px-4 py-2 text-right">Umbral</th>
+                        <th class="px-4 py-2 text-right">Estado</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for producto in stock_critico %}
-                    <tr>
+                    {% for producto in productos_alerta %}
+                    <tr class="{% if producto.cantidad < producto.umbral_alerta %}bg-red-50{% endif %}">
                         <td class="px-4 py-2">{{ producto.nombre }}</td>
                         <td class="px-4 py-2 text-right">{{ producto.cantidad }}</td>
+                        <td class="px-4 py-2 text-right">{{ producto.umbral_alerta }}</td>
+                        <td class="px-4 py-2 text-right">
+                            {% if producto.cantidad < producto.umbral_alerta %}
+                                <span class="text-red-600 font-semibold">CRÍTICO</span>
+                            {% else %}
+                                <span class="text-green-600">Normal</span>
+                            {% endif %}
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>

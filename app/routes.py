@@ -59,7 +59,10 @@ def index():
         producto_mas_mov = {'nombre': None, 'total': 0}
 
     # 4. Productos con stock crítico (cantidad < 5)
-    stock_critico = db.session.query(Producto).filter(Producto.cantidad < 5).all()
+    productos_alerta = db.session.query(Producto).filter(
+    Producto.alerta_activa == True,
+    Producto.cantidad < Producto.umbral_alerta
+).all()
 
     # 5. Productos agregados por semana (requiere campo fecha_creacion)
     # Si tienes fecha_creacion en Producto, descomenta y usa este bloque:
@@ -81,7 +84,7 @@ def index():
         movimientos_por_dia=movimientos_por_dia,
         localidad_top_salidas=localidad_top_salidas,
         producto_mas_mov=producto_mas_mov,
-        stock_critico=stock_critico,
+         productos_alerta=productos_alerta,
         today=today_caracas
         # productos_por_semana=productos_por_semana, semanas=semanas  # solo si tienes fecha_creacion
     )
