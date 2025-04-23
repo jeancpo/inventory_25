@@ -88,19 +88,40 @@ def index():
 
 @bp.route('/productos', methods=['GET', 'POST'])
 def productos():
-    if request.method == "POST":
-        nombre = request.form.get('nombre', '').strip()
-        cantidad = request.form.get('cantidad', '').strip()
-        if not nombre:
-            return "Error: El nombre es obligatorio.", 400
-        if not cantidad or not cantidad.isdigit() or int(cantidad) < 0:
-            return "Error: La cantidad debe ser un número entero positivo.", 400
-        nuevo_producto = Producto(nombre=nombre, cantidad=int(cantidad))
+    if request.method == 'POST':
+        nombre = request.form['nombre']
+        cantidad = int(request.form['cantidad'])
+        nuevo_producto = Producto(nombre=nombre, cantidad=cantidad)
         db.session.add(nuevo_producto)
         db.session.commit()
         return redirect(url_for('main.productos'))
-    productos = db.session.execute(db.select(Producto)).scalars().all()
+    
+    # Get all products with alert status
+    productos = db.session.query(Producto).all()
     return render_template('productos.html', productos=productos)
+
+@bp.route('/actualizar_alerta/<int:producto_id>', methods=['POST'])
+def actualizar_alerta(producto_id):
+    producto = Producto.query.get_or_404(producto_id)
+    producto.alerta_activa = request.form.get('alerta_activa') == 'true'
+    producto.umbral_alerta = int(request.form.get('umbral_alerta', 5000))
+    db.session.commit()
+    return redirect(url_for('main.productos'))
+
+@bp.route('/actualizar_producto', methods=['POST'])
+def actualizar_producto():
+    producto_id = request.form.get('producto_id')
+    cantidad = int(request.form.get('cantidad'))
+    alerta_activa = request.form.get('alerta_activa') == 'on'
+    umbral_alerta = int(request.form.get('umbral_alerta'))
+    
+    producto = Producto.query.get_or_404(producto_id)
+    producto.cantidad = cantidad
+    producto.alerta_activa = alerta_activa
+    producto.umbral_alerta = umbral_alerta
+    db.session.commit()
+    
+    return redirect(url_for('main.productos'))
 
 @bp.route('/movimientos', methods=['GET', 'POST'])
 def movimientos():

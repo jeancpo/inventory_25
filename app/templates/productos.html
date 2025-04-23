@@ -14,11 +14,20 @@
     </div>
     
     <form method="POST" class="mb-6 bg-gray-50 p-4 rounded-lg">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <input type="text" name="nombre" placeholder="Nombre del producto" 
                    class="p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
             <input type="number" name="cantidad" placeholder="Cantidad inicial" 
                    class="p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+            <div class="flex items-center space-x-2">
+                <input type="checkbox" name="alerta_activa" id="alerta_activa" class="rounded">
+                <label for="alerta_activa">Alerta activa</label>
+            </div>
+            <div class="flex items-center space-x-2">
+                <input type="number" name="umbral_alerta" id="umbral_alerta" placeholder="Umbral" 
+                       class="p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" value="5000">
+                <label for="umbral_alerta">Umbral</label>
+            </div>
             <button type="submit" 
                     class="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 transition-colors">
                 Agregar producto
@@ -26,58 +35,122 @@
         </div>
     </form>
 
-
-
     <div class="overflow-x-auto">
         <table class="min-w-full table-auto">
             <thead class="bg-gray-50">
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
                     <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidad</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Alerta</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Umbral</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200" id="productTableBody">
                 {% for producto in productos %}
-                <tr class="hover:bg-gray-50">
+                <tr class="hover:bg-gray-50 {% if producto.alerta_activa and producto.cantidad < producto.umbral_alerta %}bg-red-50{% endif %}">
                     <td class="px-6 py-4 whitespace-nowrap">{{ producto.nombre }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-right">{{ producto.cantidad }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                        <input type="checkbox" {% if producto.alerta_activa %}checked{% endif %} 
+                               onchange="updateAlerta({{ producto.id }})" 
+                               class="rounded">
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                        <input type="number" value="{{ producto.umbral_alerta }}" 
+                               onchange="updateUmbral({{ producto.id }})"
+                               class="w-24">
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                        <button onclick="openModal({{ producto.id }}, '{{ producto.nombre }}', {{ producto.cantidad }}, {{ 'true' if producto.alerta_activa else 'false' }}, {{ producto.umbral_alerta }})"
+                                class="text-sm text-blue-500 hover:text-blue-700">Modificar</button>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-</div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const enableFilter = document.getElementById('enableFilter');
-    const productFilter = document.getElementById('productFilter');
-    const productTableBody = document.getElementById('productTableBody');
-    const originalRows = Array.from(productTableBody.getElementsByTagName('tr'));
+    <!-- Modal -->
+    <div id="modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <form id="modalForm" method="POST" action="/actualizar_producto">
+                <input type="hidden" name="producto_id" id="modalProductoId">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Nombre</label>
+                    <input type="text" name="nombre" id="modalNombre" 
+                           class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                           readonly>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Cantidad</label>
+                    <input type="number" name="cantidad" id="modalCantidad" 
+                           class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                           required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Alerta activa</label>
+                    <input type="checkbox" name="alerta_activa" id="modalAlerta" 
+                           class="rounded">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">Umbral</label>
+                    <input type="number" name="umbral_alerta" id="modalUmbral" 
+                           class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" 
+                           required>
+                </div>
+                <div class="flex items-center justify-between">
+                    <button type="button" onclick="closeModal()" 
+                            class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                        Cancelar
+                    </button>
+                    <button type="submit" 
+                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                        Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
-    enableFilter.addEventListener('change', function() {
-        productFilter.disabled = !this.checked;
-        if (!this.checked) {
-            // Restore original rows
-            productTableBody.innerHTML = '';
-            originalRows.forEach(row => productTableBody.appendChild(row.cloneNode(true)));
-            productFilter.value = '';
+    <script>
+        function updateAlerta(productoId) {
+            const checkbox = event.target;
+            const umbral = document.querySelector(`input[data-producto-id="${productoId}"]`).value;
+            fetch(`/actualizar_alerta/${productoId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `alerta_activa=${checkbox.checked}&umbral_alerta=${umbral}`
+            });
         }
-    });
 
-    productFilter.addEventListener('input', function() {
-        if (!enableFilter.checked) return;
-        
-        const filterText = this.value.toLowerCase();
-        productTableBody.innerHTML = '';
-        
-        originalRows.forEach(row => {
-            const productName = row.cells[0].textContent.toLowerCase();
-            if (productName.includes(filterText)) {
-                productTableBody.appendChild(row.cloneNode(true));
-            }
-        });
-    });
-});
-</script>
+        function updateUmbral(productoId) {
+            const checkbox = document.querySelector(`input[type="checkbox"][data-producto-id="${productoId}"]`);
+            const umbral = event.target.value;
+            fetch(`/actualizar_alerta/${productoId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `alerta_activa=${checkbox.checked}&umbral_alerta=${umbral}`
+            });
+        }
+
+        let modal = document.getElementById('modal');
+
+        function openModal(id, nombre, cantidad, alerta_activa, umbral_alerta) {
+            modal.classList.remove('hidden');
+            document.getElementById('modalProductoId').value = id;
+            document.getElementById('modalNombre').value = nombre;
+            document.getElementById('modalCantidad').value = cantidad;
+            document.getElementById('modalAlerta').checked = alerta_activa;
+            document.getElementById('modalUmbral').value = umbral_alerta;
+        }
+
+        function closeModal() {
+            modal.classList.add('hidden');
+        }
+    </script>
 {% endblock %}
