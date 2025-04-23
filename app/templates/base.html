@@ -1,24 +1,28 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
+    <title>{% block title %}Inventario{% endblock %}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Inventario</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    {% block head %}{% endblock %}
 </head>
-<body class="bg-gray-100">
-    <nav class="bg-blue-500 text-white p-4">
-        <a href="/" class="mr-4">Inicio</a>
-        <a href="/productos" class="mr-4">Productos</a>
-        <a href="/movimientos" class="mr-4">Movimientos</a>
-        <a href="/reportes" class="mr-4">Reportes</a>
+<body class="bg-gray-100 min-h-screen">
+    <nav class="bg-blue-600 text-white px-4 py-3 mb-8 shadow">
+        <div class="container mx-auto flex justify-between items-center">
+            <span class="font-bold text-lg">Sistema de Inventario</span>
+            <div class="space-x-4">
+                <a href="{{ url_for('main.index') }}" class="hover:underline">Inicio</a>
+                <a href="{{ url_for('main.productos') }}" class="hover:underline">Productos</a>
+                <a href="{{ url_for('main.movimientos') }}" class="hover:underline">Movimientos</a>
+                <a href="{{ url_for('main.reportes') }}" class="hover:underline">Reportes</a>
+            </div>
+        </div>
     </nav>
-    <div class="container mx-auto mt-4">
+    <main class="container mx-auto">
         {% block content %}{% endblock %}
-    </div>
-    <footer class="bg-gray-800 text-white p-4 text-center">
-        <p>&copy; 2025 Inventario 25 - Creado por Jean Parra</p>
-    </footer>
-    
+    </main>
+    {% block scripts %}{% endblock %}
 </body>
 </html>

@@ -1,31 +1,39 @@
 {% extends "base.html" %}
+{% block title %}Movimientos - Inventario{% endblock %}
 {% block content %}
 <div class="bg-white p-6 rounded-lg shadow-md">
-    <h1 class="text-2xl font-bold mb-4">Movimientos</h1>
-    
-    <form method="POST" class="mb-6 bg-gray-50 p-4 rounded-lg">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            <select name="producto_id" class="p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+    <h1 class="text-2xl font-bold mb-4">Registrar Movimiento</h1>
+
+    <div class="mb-4 flex items-center space-x-4">
+        <div class="flex items-center space-x-2">
+            <input type="checkbox" id="enableFilter" class="rounded">
+            <label for="enableFilter">Activar filtro</label>
+        </div>
+        <input type="text" id="productFilter" placeholder="Filtrar productos..." 
+               class="p-2 border rounded-lg w-64 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" disabled>
+    </div>
+
+    <form method="post" class="mb-6 bg-gray-50 p-4 rounded-lg" id="movimientoForm">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <select id="productoSelect" name="producto_id" class="p-2 border rounded-lg" required>
+                <option value="">Selecciona producto</option>
                 {% for producto in productos %}
-                <option value="{{ producto.id }}">{{ producto.nombre }}</option>
+                    <option value="{{ producto.id }}">{{ producto.nombre }}</option>
                 {% endfor %}
             </select>
-            
-            <select name="tipo" class="p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <select name="tipo" id="tipoSelect" class="p-2 border rounded-lg" required>
+                <option value="">Seleccione tipo</option>
                 <option value="entrada">Entrada</option>
                 <option value="salida">Salida</option>
             </select>
-            
-            <input type="number" name="cantidad" placeholder="Cantidad" 
-                   class="p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
-            
-            <input type="text" name="location" id="location" placeholder="Ubicación" 
-                   class="p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-            
-            <button type="submit" class="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 transition-colors">
-                Registrar movimiento
-            </button>
+            <input type="number" name="cantidad" id="cantidad" placeholder="Cantidad" min="1"
+                   class="p-2 border rounded-lg" required>
+            <input type="text" name="location" id="location" placeholder="Ubicación"
+                   class="p-2 border rounded-lg" required>
         </div>
+        <button type="submit" class="mt-4 bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 transition-colors" id="submit-button">
+            Registrar movimiento
+        </button>
     </form>
 
     <div class="overflow-x-auto">
@@ -34,23 +42,109 @@
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidad</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidad</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ubicación</th>
                 </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
+            <tbody>
                 {% for movimiento in movimientos %}
-                <tr class="hover:bg-gray-50">
-                    <td class="px-6 py-4 whitespace-nowrap">{{ movimiento.producto.nombre }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ movimiento.tipo }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ movimiento.cantidad }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ movimiento.fecha }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ movimiento.location }}</td>
+                <tr class="border-b">
+                    <td class="px-6 py-4">{{ movimiento.producto.nombre }}</td>
+                    <td class="px-6 py-4">{{ movimiento.tipo }}</td>
+                    <td class="px-6 py-4 text-right">{{ movimiento.cantidad }}</td>
+                    <td class="px-6 py-4">{{ movimiento.fecha.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td class="px-6 py-4">{{ movimiento.location }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
+        {% if not movimientos %}
+            <p class="mt-4">No hay movimientos registrados.</p>
+        {% endif %}
     </div>
 </div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const enableFilter = document.getElementById('enableFilter');
+    const productFilter = document.getElementById('productFilter');
+    const productoSelect = document.getElementById('productoSelect');
+    // const movimientoForm = document.getElementById('movimientoForm');
+    // const errorMessage = document.getElementById('errorMessage');
+    const originalOptions = Array.from(productoSelect.options);
+    const submitButton = document.getElementById('submit-button');
+
+    movimientoForm.addEventListener('submit', async function(e) {
+        // e.preventDefault();
+        // errorMessage.classList.add('hidden');
+        
+        // const formData = new FormData(this);
+        // try {
+        //     const response = await fetch('/movimientos', {
+        //         method: 'POST',
+        //         body: formData
+        //     });
+            
+        //     if (!response.ok) {
+        //         const error = await response.text();
+        //         throw new Error(error);
+        //     }
+            
+        //     window.location.href = '/movimientos';
+        // } catch (error) {
+        //     errorMessage.textContent = error.message;
+        //     errorMessage.classList.remove('hidden');
+        // }
+    });
+
+    enableFilter.addEventListener('change', function() {
+        productFilter.disabled = !this.checked;
+        if (!this.checked) {
+            productoSelect.innerHTML = '';
+            originalOptions.forEach(option => productoSelect.add(option.cloneNode(true)));
+            productFilter.value = '';
+        }
+    });
+
+    productFilter.addEventListener('input', function() {
+        if (!enableFilter.checked) return;
+        
+        const filterText = this.value.toLowerCase();
+        productoSelect.innerHTML = '';
+        
+        originalOptions.forEach(option => {
+            if (option.text.toLowerCase().includes(filterText)) {
+                productoSelect.add(option.cloneNode(true));
+            }
+        });
+    });
+
+    // Add modification functionality
+    document.querySelectorAll('.modify-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const row = this.closest('tr');
+            const movimientoId = row.dataset.id;
+            const productoId = row.querySelector('.producto-id').value;
+            const tipo = row.querySelector('.tipo-text').textContent;
+            const cantidad = row.querySelector('.cantidad-text').textContent;
+            const location = row.querySelector('.location-text').textContent;
+
+            // Fill the form with the row data
+            document.getElementById('movimiento_id').value = movimientoId;
+            document.getElementById('productoSelect').value = productoId;
+            document.getElementById('tipoSelect').value = tipo;
+            document.getElementById('cantidad').value = cantidad;
+            document.getElementById('location').value = location;
+            
+            // Change the button text
+            submitButton.textContent = 'Actualizar movimiento';
+
+            // Scroll to the form
+            document.getElementById('movimientoForm').scrollIntoView({ behavior: 'smooth' });
+        });
+    });
+});
+</script>
 {% endblock %}

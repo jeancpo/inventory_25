@@ -13,6 +13,6 @@ def create_app():
         from . import routes, models
         db.create_all()
 
-        routes.register_routes(app)  # Register the routes here
+    app.register_blueprint(routes.bp)  # Register the Blueprint here
 
     return app

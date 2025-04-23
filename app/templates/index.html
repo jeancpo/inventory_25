@@ -1,24 +1,120 @@
 {% extends "base.html" %}
+{% block title %}Inicio - Inventario{% endblock %}
 {% block content %}
 <div class="bg-white p-6 rounded-lg shadow-md">
-    <h1 class="text-2xl font-bold mb-4">Bienvenido al Sistema de Inventario</h1>
-    <p class="text-gray-600 mb-4">Aquí puedes gestionar tus productos y movimientos.</p>
-    
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <a href="/productos" class="bg-blue-100 p-4 rounded-lg hover:bg-blue-200 transition-colors">
-            <h2 class="text-lg font-semibold mb-2">Productos</h2>
-            <p class="text-gray-600">Gestiona tu inventario de productos</p>
-        </a>
-        
-        <a href="/movimientos" class="bg-green-100 p-4 rounded-lg hover:bg-green-200 transition-colors">
-            <h2 class="text-lg font-semibold mb-2">Movimientos</h2>
-            <p class="text-gray-600">Registra entradas y salidas</p>
-        </a>
-        
-        <a href="/reportes" class="bg-purple-100 p-4 rounded-lg hover:bg-purple-200 transition-colors">
-            <h2 class="text-lg font-semibold mb-2">Reportes</h2>
-            <p class="text-gray-600">Visualiza estadísticas y reportes</p>
-        </a>
+    <h1 class="text-2xl font-bold mb-4">Dashboard </h1>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <!-- Tarjeta: Producto con más movimientos -->
+        <div class="bg-blue-100 p-4 rounded shadow flex flex-col items-center">
+            <div class="text-lg font-semibold mb-2">Producto más movido (última semana)</div>
+            <div class="text-3xl font-bold text-blue-700">
+                {{ producto_mas_mov.nombre if producto_mas_mov.nombre else 'N/A' }}
+            </div>
+            <div class="text-gray-500">Total movimientos: {{ producto_mas_mov.total }}</div>
+        </div>
+        <!-- Tarjeta: Total movimientos últimos 5 días -->
+        <div class="bg-green-100 p-4 rounded shadow flex flex-col items-center">
+            <div class="text-lg font-semibold mb-2">Movimientos últimos 5 días</div>
+            <div class="text-3xl font-bold text-green-700">
+                {{ movimientos_por_dia | sum(attribute='total') }}
+            </div>
+            <div class="text-gray-500">Total entradas y salidas</div>
+        </div>
+        <!-- Tarjeta: Productos con stock crítico -->
+        <div class="bg-red-100 p-4 rounded shadow flex flex-col items-center">
+            <div class="text-lg font-semibold mb-2">Stock crítico</div>
+            <div class="text-3xl font-bold text-red-700">
+                {{ stock_critico|length }}
+            </div>
+            <div class="text-gray-500">Productos con cantidad &lt; 5</div>
+        </div>
     </div>
+
+    <!-- Gráfico: Movimientos por día -->
+    <div class="mb-8">
+        <h2 class="text-xl font-semibold mb-2">Movimientos por día (últimos 5 días)</h2>
+        <canvas id="movimientosChart" height="80"></canvas>
+    </div>
+
+    <!-- Tabla: Localidad con más salidas por día -->
+    <div class="mb-8">
+        <h2 class="text-xl font-semibold mb-2">Localidad con más salidas por día</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full table-auto">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-2 text-left">Fecha</th>
+                        <th class="px-4 py-2 text-left">Localidad</th>
+                        <th class="px-4 py-2 text-right">Salidas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in localidad_top_salidas %}
+                    <tr>
+                        <td class="px-4 py-2">{{ item.fecha }}</td>
+                        <td class="px-4 py-2">{{ item.localidad if item.localidad else 'N/A' }}</td>
+                        <td class="px-4 py-2 text-right">{{ item.salidas }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Tabla: Productos con stock crítico -->
+    {% if stock_critico %}
+    <div class="mb-8">
+        <h2 class="text-xl font-semibold mb-2">Productos con stock crítico</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full table-auto">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-2 text-left">Nombre</th>
+                        <th class="px-4 py-2 text-right">Cantidad</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for producto in stock_critico %}
+                    <tr>
+                        <td class="px-4 py-2">{{ producto.nombre }}</td>
+                        <td class="px-4 py-2 text-right">{{ producto.cantidad }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Gráfico de movimientos por día
+    var ctx = document.getElementById('movimientosChart').getContext('2d');
+    var movimientosChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ movimientos_por_dia | map(attribute='fecha') | list | tojson }},
+            datasets: [{
+                label: 'Movimientos',
+                data: {{ movimientos_por_dia | map(attribute='total') | list | tojson }},
+                backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                borderColor: 'rgba(59, 130, 246, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+});
+</script>
 {% endblock %}

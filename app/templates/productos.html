@@ -1,7 +1,17 @@
 {% extends "base.html" %}
+{% block title %}Productos - Inventario{% endblock %}
 {% block content %}
 <div class="bg-white p-6 rounded-lg shadow-md">
     <h1 class="text-2xl font-bold mb-4">Productos</h1>
+
+    <div class="mb-4 flex items-center space-x-4">
+        <div class="flex items-center space-x-2">
+            <input type="checkbox" id="enableFilter" class="rounded">
+            <label for="enableFilter">Activar filtro</label>
+        </div>
+        <input type="text" id="productFilter" placeholder="Filtrar productos..." 
+               class="p-2 border rounded-lg w-64 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" disabled>
+    </div>
     
     <form method="POST" class="mb-6 bg-gray-50 p-4 rounded-lg">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -16,23 +26,58 @@
         </div>
     </form>
 
+
+
     <div class="overflow-x-auto">
         <table class="min-w-full table-auto">
             <thead class="bg-gray-50">
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nombre</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidad</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidad</th>
                 </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
+            <tbody class="bg-white divide-y divide-gray-200" id="productTableBody">
                 {% for producto in productos %}
                 <tr class="hover:bg-gray-50">
                     <td class="px-6 py-4 whitespace-nowrap">{{ producto.nombre }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap">{{ producto.cantidad }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right">{{ producto.cantidad }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const enableFilter = document.getElementById('enableFilter');
+    const productFilter = document.getElementById('productFilter');
+    const productTableBody = document.getElementById('productTableBody');
+    const originalRows = Array.from(productTableBody.getElementsByTagName('tr'));
+
+    enableFilter.addEventListener('change', function() {
+        productFilter.disabled = !this.checked;
+        if (!this.checked) {
+            // Restore original rows
+            productTableBody.innerHTML = '';
+            originalRows.forEach(row => productTableBody.appendChild(row.cloneNode(true)));
+            productFilter.value = '';
+        }
+    });
+
+    productFilter.addEventListener('input', function() {
+        if (!enableFilter.checked) return;
+        
+        const filterText = this.value.toLowerCase();
+        productTableBody.innerHTML = '';
+        
+        originalRows.forEach(row => {
+            const productName = row.cells[0].textContent.toLowerCase();
+            if (productName.includes(filterText)) {
+                productTableBody.appendChild(row.cloneNode(true));
+            }
+        });
+    });
+});
+</script>
 {% endblock %}
