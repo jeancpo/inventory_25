@@ -162,6 +162,33 @@ def movimientos():
     movimientos = db.session.execute(db.select(Movimiento)).scalars().all()
     return render_template('movimientos.html', productos=productos, movimientos=movimientos)
 
+@bp.route('/actualizar_movimiento', methods=['POST'])
+def actualizar_movimiento():
+    movimiento_id = request.form.get('movimiento_id')
+    producto_id = int(request.form.get('producto_id'))
+    tipo = request.form.get('tipo')
+    cantidad = int(request.form.get('cantidad'))
+    location = request.form.get('location')
+    
+    movimiento = Movimiento.query.get_or_404(movimiento_id)
+    
+    # Update movement details
+    movimiento.producto_id = producto_id
+    movimiento.tipo = tipo
+    movimiento.cantidad = cantidad
+    movimiento.location = location
+    
+    # Update product quantity
+    producto = Producto.query.get_or_404(producto_id)
+    if tipo == 'entrada':
+        producto.cantidad += cantidad
+    else:  # salida
+        producto.cantidad -= cantidad
+    
+    db.session.commit()
+    
+    return redirect(url_for('main.movimientos'))
+
 @bp.route('/reportes')
 def reportes():
     filtro = request.args.get('filtro', 'dia')
