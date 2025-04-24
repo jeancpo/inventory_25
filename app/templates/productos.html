@@ -153,4 +153,39 @@
             modal.classList.add('hidden');
         }
     </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const enableFilter = document.getElementById('enableFilter');
+            const productFilter = document.getElementById('productFilter');
+            const productTableBody = document.getElementById('productTableBody');
+
+            // Activar/desactivar el filtro
+            enableFilter.addEventListener('change', function() {
+                productFilter.disabled = !this.checked;
+                if (!this.checked) {
+                    productFilter.value = '';
+                    filterProducts('');
+                }
+            });
+
+            // Filtrar productos al escribir
+            productFilter.addEventListener('input', function() {
+                filterProducts(this.value.toLowerCase());
+            });
+
+            // Función para filtrar los productos
+            function filterProducts(filterText) {
+                const rows = productTableBody.getElementsByTagName('tr');
+                
+                for (let row of rows) {
+                    const productName = row.getElementsByTagName('td')[0].textContent.toLowerCase();
+                    if (productName.includes(filterText)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                }
+            }
+        });
+    </script>
 {% endblock %}

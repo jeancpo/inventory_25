@@ -72,7 +72,11 @@ class TestProductOperations:
         assert response.status_code == 200
         
         # Verify product was created
-        product = session.execute(db.select(Producto)).scalar_one()
+        product = session.execute(
+            db.select(Producto).filter_by(nombre='New Product')
+        ).scalar_one_or_none()
+        
+        assert product is not None
         assert product.nombre == 'New Product'
         assert product.cantidad == 50
 
@@ -98,7 +102,13 @@ class TestProductOperations:
             'nombre': 'Invalid',
             'cantidad': '-10'
         }, follow_redirects=False)
-        assert response.status_code == 400  # Should redirect with flash message
+        assert response.status_code == 302  # Should redirect with flash message
+        
+        # Verify product was not created
+        product = session.execute(
+            db.select(Producto).filter_by(nombre='Invalid')
+        ).scalar_one_or_none()
+        assert product is None
         
         # Test empty name
         response = client.post('/productos', data={

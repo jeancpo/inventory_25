@@ -1,17 +1,34 @@
-from flask import Blueprint, render_template, request, redirect, url_for
+"""
+Este módulo contiene las rutas principales de la aplicación de inventario.
+
+Rutas disponibles:
+- /: Página principal con estadísticas y gráficos
+- /productos: Gestión de productos
+- /movimientos: Registro y gestión de movimientos
+- /reportes: Generación de reportes
+"""
+from flask import Blueprint, render_template, request, redirect, url_for, flash
 from datetime import datetime, timedelta, time
 from .models import db, Producto, Movimiento
 from sqlalchemy import func
 import pytz
 
 bp = Blueprint('main', __name__)
-# Save in UTC
-#fecha=datetime.now(pytz.utc)
 
 @bp.route('/')
 def index():
+    """
+    Muestra la página principal con estadísticas y gráficos.
     
-    # 1. Movimientos totales por día (últimos 5 días)
+    Genera datos para:
+    1. Movimientos totales por día (últimos 5 días)
+    2. Localidad con más salidas por día
+    3. Producto con más movimientos en la última semana
+    4. Productos con stock crítico
+    
+    Returns:
+        render_template: Template con los datos calculados
+    """
     caracas = pytz.timezone("America/Caracas")
     today_caracas = datetime.now(caracas).date()
     dias = [today_caracas - timedelta(days=i) for i in range(4, -1, -1)]
@@ -84,19 +101,36 @@ def index():
         movimientos_por_dia=movimientos_por_dia,
         localidad_top_salidas=localidad_top_salidas,
         producto_mas_mov=producto_mas_mov,
-         productos_alerta=productos_alerta,
+        productos_alerta=productos_alerta,
         today=today_caracas
         # productos_por_semana=productos_por_semana, semanas=semanas  # solo si tienes fecha_creacion
     )
 
 @bp.route('/productos', methods=['GET', 'POST'])
 def productos():
+    """
+    Gestión de productos.
+    
+    GET: Muestra la lista de productos
+    POST: Agrega un nuevo producto
+    
+    Returns:
+        GET: render_template con la lista de productos
+        POST: redirección a la lista de productos
+    """
     if request.method == 'POST':
         nombre = request.form['nombre']
         cantidad = int(request.form['cantidad'])
+        
+        # Validar que la cantidad no sea negativa
+        if cantidad < 0:
+            flash('La cantidad no puede ser negativa', 'error')
+            return redirect(url_for('main.productos'))
+            
         nuevo_producto = Producto(nombre=nombre, cantidad=cantidad)
         db.session.add(nuevo_producto)
         db.session.commit()
+        flash('Producto agregado exitosamente', 'success')
         return redirect(url_for('main.productos'))
     
     # Get all products with alert status
@@ -105,6 +139,15 @@ def productos():
 
 @bp.route('/actualizar_alerta/<int:producto_id>', methods=['POST'])
 def actualizar_alerta(producto_id):
+    """
+    Actualiza el estado de alerta de un producto.
+    
+    Args:
+        producto_id (int): ID del producto a actualizar
+    
+    Returns:
+        redirect: Redirección a la lista de productos
+    """
     producto = Producto.query.get_or_404(producto_id)
     producto.alerta_activa = request.form.get('alerta_activa') == 'true'
     producto.umbral_alerta = int(request.form.get('umbral_alerta', 5000))
@@ -113,6 +156,12 @@ def actualizar_alerta(producto_id):
 
 @bp.route('/actualizar_producto', methods=['POST'])
 def actualizar_producto():
+    """
+    Actualiza los datos de un producto existente.
+    
+    Returns:
+        redirect: Redirección a la lista de productos
+    """
     producto_id = request.form.get('producto_id')
     cantidad = int(request.form.get('cantidad'))
     alerta_activa = request.form.get('alerta_activa') == 'on'
@@ -128,6 +177,16 @@ def actualizar_producto():
 
 @bp.route('/movimientos', methods=['GET', 'POST'])
 def movimientos():
+    """
+    Gestión de movimientos de inventario.
+    
+    GET: Muestra la lista de movimientos
+    POST: Registra un nuevo movimiento
+    
+    Returns:
+        GET: render_template con la lista de movimientos
+        POST: redirección a la lista de movimientos
+    """
     if request.method == "POST":
         producto_id = request.form.get('producto_id', '').strip()
         tipo = request.form.get('tipo', '').strip()
@@ -167,6 +226,12 @@ def movimientos():
 
 @bp.route('/actualizar_movimiento', methods=['POST'])
 def actualizar_movimiento():
+    """
+    Actualiza los datos de un movimiento existente.
+    
+    Returns:
+        redirect: Redirección a la lista de movimientos
+    """
     movimiento_id = request.form.get('movimiento_id')
     producto_id = int(request.form.get('producto_id'))
     tipo = request.form.get('tipo')
@@ -194,6 +259,12 @@ def actualizar_movimiento():
 
 @bp.route('/reportes')
 def reportes():
+    """
+    Genera reportes de inventario.
+    
+    Returns:
+        render_template: Template con los reportes generados
+    """
     filtro = request.args.get('filtro', 'dia')
     today = datetime.now()
     movimientos = []

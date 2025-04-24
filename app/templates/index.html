@@ -26,7 +26,7 @@
             <div class="text-3xl font-bold text-red-700">
                 {{ productos_alerta|length }}
             </div>
-            <div class="text-gray-500">Productos con alerta activa y cantidad &lt; umbral</div>
+            <div class="text-gray-500">Productos con alerta</div>
         </div>
     </div>
 
@@ -34,31 +34,6 @@
     <div class="mb-8">
         <h2 class="text-xl font-semibold mb-2">Movimientos por día (últimos 5 días)</h2>
         <canvas id="movimientosChart" height="80"></canvas>
-    </div>
-
-    <!-- Tabla: Localidad con más salidas por día -->
-    <div class="mb-8">
-        <h2 class="text-xl font-semibold mb-2">Localidad con más salidas por día</h2>
-        <div class="overflow-x-auto">
-            <table class="min-w-full table-auto">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-4 py-2 text-left">Fecha</th>
-                        <th class="px-4 py-2 text-left">Localidad</th>
-                        <th class="px-4 py-2 text-right">Salidas</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in localidad_top_salidas %}
-                    <tr>
-                        <td class="px-4 py-2">{{ item.fecha }}</td>
-                        <td class="px-4 py-2">{{ item.localidad if item.localidad else 'N/A' }}</td>
-                        <td class="px-4 py-2 text-right">{{ item.salidas }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
     </div>
 
     <!-- Tabla: Productos con stock crítico -->
@@ -95,6 +70,33 @@
         </div>
     </div>
     {% endif %}
+
+    <!-- Tabla: Localidad con más salidas por día -->
+    <div class="mb-8">
+        <h2 class="text-xl font-semibold mb-2">Localidad con más salidas por día</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full table-auto">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 py-2 text-left">Fecha</th>
+                        <th class="px-4 py-2 text-left">Localidad</th>
+                        <th class="px-4 py-2 text-right">Salidas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in localidad_top_salidas %}
+                    <tr>
+                        <td class="px-4 py-2">{{ item.fecha }}</td>
+                        <td class="px-4 py-2">{{ item.localidad if item.localidad else 'N/A' }}</td>
+                        <td class="px-4 py-2 text-right">{{ item.salidas }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    
 </div>
 {% endblock %}
 
